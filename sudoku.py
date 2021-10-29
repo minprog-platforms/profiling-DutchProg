@@ -147,8 +147,5 @@ def load_from_file(filename: str) -> Sudoku:
 
             puzzle.append(line)
 
-
-
-
     return Sudoku(puzzle)
 
