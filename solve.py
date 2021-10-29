@@ -55,6 +55,9 @@ if __name__ == "__main__":
     # Load the puzzle
     sudoku = load_from_file(puzzle_path)
 
+    # Save the puzzle
+    sudoku_save = sudoku
+
     # Show the puzzle to the user
     print(sudoku)
     print()
@@ -66,7 +69,7 @@ if __name__ == "__main__":
 
         # If this is not the last run, reload the puzzle
         if i < args.number_of_runs - 1:
-            sudoku = load_from_file(puzzle_path)
+            sudoku = sudoku_save
 
     print("DONE SOLVING")
 

@@ -1,49 +1,34 @@
 from __future__ import annotations
 from typing import Iterable, Sequence
-
+import numpy as np
 
 class Sudoku:
     """A mutable sudoku puzzle."""
 
     def __init__(self, puzzle: Iterable[Iterable]):
-        self._grid: list[str] = []
+        puzzle_new = np.ndarray(shape=(9,9), dtype=int)
+        count = 0
+        for line in puzzle:
 
-        for puzzle_row in puzzle:
-            row = ""
+            line =  [int(i) for i in line ]
+            puzzle_new[count,:] = line
+            count += 1
 
-            for element in puzzle_row:
-                row += str(element)
-
-            self._grid.append(row)
+        self._grid = puzzle_new
 
     def place(self, value: int, x: int, y: int) -> None:
         """Place value at x,y."""
-        row = self._grid[y]
-        new_row = ""
-
-        for i in range(9):
-            if i == x:
-                new_row += str(value)
-            else:
-                new_row += row[i]
-
-        self._grid[y] = new_row
+        self._grid[y,x] = value
 
     def unplace(self, x: int, y: int) -> None:
         """Remove (unplace) a number at x,y."""
-        row = self._grid[y]
-        new_row = row[:x] + "0" + row[x + 1:]
-        self._grid[y] = new_row
+
+        self._grid[y,x] = 0
+
 
     def value_at(self, x: int, y: int) -> int:
         """Returns the value at x,y."""
-        value = -1
-
-        for i in range(9):
-            for j in range(9):
-                if i == x and j == y:
-                    row = self._grid[y]
-                    value = int(row[x])
+        value = self._grid[y,x]
 
         return value
 
@@ -78,28 +63,27 @@ class Sudoku:
         """
         next_x, next_y = -1, -1
 
-        for y in range(9):
-            for x in range(9):
-                if self.value_at(x, y) == 0 and next_x == -1 and next_y == -1:
-                    next_x, next_y = x, y
+        zero_indices = np.where(self._grid==0)
+
+
+        if len(self._grid[zero_indices]) == 0:
+            return next_x, next_y
+        else:
+            next_x =zero_indices[1][0]
+            next_y = zero_indices[0][0]
+
 
         return next_x, next_y
 
     def row_values(self, i: int) -> Sequence[int]:
         """Returns all values at i-th row."""
-        values = []
-
-        for j in range(9):
-            values.append(self.value_at(j, i))
+        values = self._grid[i,:]
 
         return values
 
     def column_values(self, i: int) -> Sequence[int]:
         """Returns all values at i-th column."""
-        values = []
-
-        for j in range(9):
-            values.append(self.value_at(i, j))
+        values = self._grid[:,i]
 
         return values
 
@@ -112,13 +96,13 @@ class Sudoku:
         6 7 8
         """
         values = []
-
         x_start = (i % 3) * 3
         y_start = (i // 3) * 3
 
-        for x in range(x_start, x_start + 3):
-            for y in range(y_start, y_start + 3):
-                values.append(self.value_at(x, y))
+        mini_grid = self._grid[y_start:y_start+3 ,  x_start:x_start+3  ]
+
+        for i in np.nditer(mini_grid):
+            values.append(i.tolist())
 
         return values
 
@@ -134,35 +118,37 @@ class Sudoku:
         for i in range(9):
             for value in values:
                 if value not in self.column_values(i):
-                    result = False
+                    return False
 
                 if value not in self.row_values(i):
-                    result = False
+                    return False
 
                 if value not in self.block_values(i):
-                    result = False
+                    return False
 
         return result
 
     def __str__(self) -> str:
-        representation = ""
 
-        for row in self._grid:
-            representation += row + "\n"
+        representation = np.array2string( self._grid)
 
-        return representation.strip()
+        return representation
 
 
 def load_from_file(filename: str) -> Sudoku:
     """Load a Sudoku from filename."""
-    puzzle: list[str] = []
-
+    puzzle = []
     with open(filename) as f:
         for line in f:
 
             # strip newline and remove all commas
-            line = line.strip().replace(",", "")
+            line = line.strip()
+            line = line.split(',')
 
             puzzle.append(line)
 
+
+
+
     return Sudoku(puzzle)
+
